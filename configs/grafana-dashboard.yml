@@ -1,0 +1,6 @@
+apiVersion: 1
+providers:
+  - name: Benchmark Dashboard
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

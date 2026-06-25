@@ -1,0 +1,73 @@
+{
+  "__inputs": [{"name":"DS_PROMETHEUS","type":"datasource","pluginId":"prometheus"}],
+  "title": "LLM Inference Benchmark Dashboard",
+  "uid": "llm-bench-v1",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "tags": ["vllm","llm","benchmark","inference","mi300x"],
+  "time": {"from":"now-1h","to":"now"},
+  "panels": [
+    {
+      "id":1,"type":"stat","title":"Total Runs",
+      "gridPos":{"x":0,"y":0,"w":4,"h":4},
+      "fieldConfig":{"defaults":{"unit":"short"}},
+      "targets":[{"datasource":"${DS_PROMETHEUS}","expr":"bench_runs_total","legendFormat":"Runs"}]
+    },
+    {
+      "id":2,"type":"stat","title":"Best TTFT p50",
+      "gridPos":{"x":4,"y":0,"w":5,"h":4},
+      "fieldConfig":{"defaults":{"unit":"ms","thresholds":{"steps":[{"color":"green","value":null},{"color":"yellow","value":150},{"color":"red","value":300}]}}},
+      "targets":[{"datasource":"${DS_PROMETHEUS}","expr":"bench_best_ttft_p50_ms","legendFormat":"{{model}}"}]
+    },
+    {
+      "id":3,"type":"stat","title":"Best Throughput",
+      "gridPos":{"x":9,"y":0,"w":5,"h":4},
+      "fieldConfig":{"defaults":{"unit":"short","displayName":"tok/s"}},
+      "targets":[{"datasource":"${DS_PROMETHEUS}","expr":"bench_best_throughput_tok_s","legendFormat":"{{model}}"}]
+    },
+    {
+      "id":4,"type":"stat","title":"Active Runs",
+      "gridPos":{"x":14,"y":0,"w":4,"h":4},
+      "fieldConfig":{"defaults":{"unit":"short","thresholds":{"steps":[{"color":"green","value":null},{"color":"yellow","value":1},{"color":"red","value":3}]}}},
+      "targets":[{"datasource":"${DS_PROMETHEUS}","expr":"bench_active_runs","legendFormat":"Active"}]
+    },
+    {
+      "id":5,"type":"stat","title":"Total Inference Requests",
+      "gridPos":{"x":18,"y":0,"w":6,"h":4},
+      "fieldConfig":{"defaults":{"unit":"short"}},
+      "targets":[{"datasource":"${DS_PROMETHEUS}","expr":"bench_inference_requests_total{status='ok'}","legendFormat":"{{model}}"}]
+    },
+    {
+      "id":6,"type":"timeseries","title":"TTFT p50 Distribution Over Time",
+      "gridPos":{"x":0,"y":4,"w":14,"h":9},
+      "fieldConfig":{"defaults":{"unit":"ms","custom":{"lineWidth":2,"fillOpacity":8}}},
+      "targets":[
+        {"datasource":"${DS_PROMETHEUS}","expr":"histogram_quantile(0.50, rate(bench_ttft_p50_ms_bucket[2m]))","legendFormat":"p50 of p50s"}
+      ]
+    },
+    {
+      "id":7,"type":"timeseries","title":"Throughput Over Time (req/s)",
+      "gridPos":{"x":14,"y":4,"w":10,"h":9},
+      "fieldConfig":{"defaults":{"unit":"reqps"}},
+      "targets":[
+        {"datasource":"${DS_PROMETHEUS}","expr":"histogram_quantile(0.90, rate(bench_throughput_req_s_bucket[2m]))","legendFormat":"p90 req/s"}
+      ]
+    },
+    {
+      "id":8,"type":"heatmap","title":"TTFT p50 Heatmap by Concurrency",
+      "gridPos":{"x":0,"y":13,"w":14,"h":8},
+      "targets":[
+        {"datasource":"${DS_PROMETHEUS}","expr":"rate(bench_ttft_p50_ms_bucket[2m])","legendFormat":"{{le}}"}
+      ]
+    },
+    {
+      "id":9,"type":"timeseries","title":"TPOT p50 Distribution",
+      "gridPos":{"x":14,"y":13,"w":10,"h":8},
+      "fieldConfig":{"defaults":{"unit":"ms"}},
+      "targets":[
+        {"datasource":"${DS_PROMETHEUS}","expr":"histogram_quantile(0.50, rate(bench_tpot_p50_ms_bucket[2m]))","legendFormat":"TPOT p50"}
+      ]
+    }
+  ]
+}

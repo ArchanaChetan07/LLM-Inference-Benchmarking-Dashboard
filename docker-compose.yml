@@ -1,0 +1,76 @@
+version: "3.9"
+
+# ── LLM Benchmark Dashboard — Full Stack ─────────────────────────────
+# Services: API server + Prometheus + Grafana
+#
+# Usage:
+#   docker compose up -d
+#   open dashboard/index.html   ← frontend (static, no build needed)
+#   open http://localhost:3000  ← Grafana (admin/admin)
+#   open http://localhost:9090  ← Prometheus
+#
+# To run against real vLLM, set VLLM_REAL=1 in the api service.
+
+services:
+
+  # ── Benchmark API ─────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - VLLM_REAL=0           # set to 1 to call real vLLM backend
+      - VLLM_BACKEND_URL=http://vllm-serve:8000
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - bench-net
+
+  # ── Prometheus ────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    networks:
+      - bench-net
+    restart: unless-stopped
+
+  # ── Grafana ───────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/grafana-datasource.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+      - ./dashboards/grafana-benchmark.json:/var/lib/grafana/dashboards/benchmark.json:ro
+      - ./configs/grafana-dashboard.yml:/etc/grafana/provisioning/dashboards/benchmark.yml:ro
+    depends_on:
+      - prometheus
+    networks:
+      - bench-net
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  bench-net:
+    driver: bridge
