@@ -8,6 +8,8 @@
 [![Prometheus](https://img.shields.io/badge/Prometheus-Live%20Metrics-E6522C?style=flat-square&logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Real-time](https://img.shields.io/badge/Streaming-Live%20Charts-2ea44f?style=flat-square)](https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard)
 [![GPU](https://img.shields.io/badge/NVIDIA-DCGM%20Metrics-76B900?style=flat-square&logo=nvidia&logoColor=white)](https://developer.nvidia.com/dcgm)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
+[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 
 *The four metrics that actually tell you if your LLM API is healthy — live, as requests happen.*
 
@@ -94,29 +96,58 @@ cd LLM-Inference-Benchmarking-Dashboard
 export VLLM_METRICS_URL=http://localhost:8000/metrics
 export PROMETHEUS_URL=http://localhost:9090
 
+# Start backend + dashboard
+docker compose up -d
+
 # Open dashboard
-open index.html
+open http://localhost:3001
 ```
 
-For full metrics (DCGM), deploy NVIDIA DCGM Exporter via the GPU Operator or standalone:
+For full GPU metrics (DCGM), deploy NVIDIA DCGM Exporter:
 ```bash
 helm install dcgm-exporter nvidia/dcgm-exporter -n monitoring
 ```
 
 ---
 
-## Related projects
+## Project structure
 
-Part of a complete vLLM observability suite:
-
-- **[KubeInfer](https://github.com/ArchanaChetan07/KubeInfer)** — production K8s deployment platform (Helm · HPA · RBAC · CI/CD)
-- **[KV Cache Profiler](https://github.com/ArchanaChetan07/KV-Cache-Profiler-)** — deep-dive KV cache hit rate and eviction analysis
-- **LLM Inference Benchmarking Dashboard** ← you are here
+```
+LLM-Inference-Benchmarking-Dashboard/
+├── dashboard/          # HTML/JS live dashboard
+├── backend/            # Prometheus metrics scraper + API
+├── dashboards/         # Grafana dashboard JSON
+├── configs/            # Prometheus + DCGM config
+├── tests/              # pytest suite
+├── docker-compose.yml  # Full stack (dashboard + backend + Prometheus)
+└── requirements.txt
+```
 
 ---
 
-## Author
+## Part of the vLLM Observability Ecosystem
 
-**Archana Suresh Patil** — MLOps & AI Infrastructure Engineer  
-MS Data Science · University of San Diego · GPA 3.9  
-📬 apatil@sandiego.edu · [LinkedIn](https://linkedin.com/in/archana-suresh-patil-792213245) · [GitHub](https://github.com/ArchanaChetan07)
+| Project | What it does |
+|---------|-------------|
+| **[LLM Benchmarking Dashboard](https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard)** ← you are here | Live TTFT/TPOT/ITL/E2EL charts · DCGM GPU metrics · inference diagnostics |
+| **[AI Inference Observability Platform](https://github.com/ArchanaChetan07/ai-inference-observability-platform)** | FastAPI proxy · TTFT/TBT/E2E in every response · Prometheus · Grafana · 48 tests |
+| **[KubeInfer](https://github.com/ArchanaChetan07/KubeInfer)** | Production K8s deployment · queue-depth HPA · GitOps · 12 alert rules |
+| **[KV Cache Profiler](https://github.com/ArchanaChetan07/KV-Cache-Profiler-)** | Real-time GPU KV cache hit rate · eviction · memory pressure |
+| **[AI Infrastructure Copilot](https://github.com/ArchanaChetan07/AI-Infrastructure-Copilot)** | Conversational assistant for GPU capacity planning and K8s config |
+
+---
+
+## License
+
+[MIT](LICENSE)
+
+---
+
+<div align="center">
+
+**Archana Suresh Patil** — ML Platform & MLOps Engineer · Sunnyvale, CA  
+[LinkedIn](https://linkedin.com/in/archana-suresh-patil-792213245) · [GitHub](https://github.com/ArchanaChetan07) · Open to full-time · No sponsorship needed
+
+**[⭐ Star this repo](https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard)** if it helps your LLM monitoring stack.
+
+</div>
