@@ -1,100 +1,159 @@
-# LLM-Inference-Benchmarking-Dashboard
+# LLM Inference Benchmarking Dashboard
 
-Python · FastAPI · Kubernetes · Docker · Helm · Prometheus · Grafana · GPU · vLLM · MLOps · CI/CD. TTFT/TPOT/ITL/E2EL P50/P95/P99; DCGM; 18 files; CI+tests. Production LLM/platform engineering focus for latency, cost, and reliability.
+### FastAPI + WebSocket dashboard that orchestrates vLLM bench serve sweeps and streams TTFT/TPOT/ITL/E2EL percentiles.
 
-## Results (numbers)
+[![GitHub](https://img.shields.io/badge/repo-LLM-Inference-Benchmarking-Dashboard-181717?logo=github)](https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard)
+[![Language](https://img.shields.io/badge/language-HTML-3572A5)](https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard)
+[![License](https://img.shields.io/badge/license-See%20repository-yellow)](https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard)
+[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard/actions)
 
-| Metric | Value |
-|---|---|
-| Tracked repository files | **18** |
-| Python modules | **7** |
-| Notebooks | **0** |
-| Markdown docs | **1** |
-| CI workflows present | **Yes** |
-| Automated tests present | **Yes** |
-| Project highlights | **TTFT/TPOT/ITL/E2EL P50/P95/P99; DCGM; 18 files; CI+tests** |
+---
+
+## Overview
+
+Running concurrency sweeps against vLLM and visualizing P50/P95/P99 latency plus GPU telemetry is tedious without a live control plane.
+
+BenchmarkEngine drives concurrency levels (real vllm bench serve when VLLM_REAL=1, else simulation), streams LevelResult metrics over WebSockets, and ships Prometheus/Grafana/docker-compose wiring.
+
+18-file dashboard stack covering TTFT/TPOT/ITL/E2EL style metrics with CI; defaults illustrate MI300X-oriented configs but results are workload-dependent.
+
+This repository is maintained as **production-minded portfolio work**: clear architecture, automated checks where present, and metrics that are **traceable to committed artifacts** (never invented).
+
+---
+
+## Architecture
+
+UI/WebSocket clients start a BenchmarkEngine run; engine executes per-concurrency benches (simulated or vllm bench serve), streams metrics, and optional Prometheus/Grafana scrape the backend.
+
+```mermaid
+sequenceDiagram
+  participant UI as Dashboard UI
+  participant API as FastAPI server
+  participant E as BenchmarkEngine
+  participant V as vLLM bench serve
+  UI->>API: start(config)
+  API->>E: start run_id
+  loop concurrency levels
+    E->>V: VLLM_REAL=1 subprocess
+    V-->>E: parse stdout metrics
+    E-->>UI: WebSocket LevelResult
+  end
+```
+
+```mermaid
+flowchart LR
+  In[Inputs] --> Core[Processing]
+  Core --> Out[Outputs / metrics]
+  Out --> CI[CI artifacts]
+```
+
+---
+
+## Results & repository facts
+
+> Only values found in code, configs, tests, or generated reports are listed. Absence of a clinical/ML accuracy number means it was **not** published in-repo.
+
+| Metric | Value | Source |
+|---|---|---|
+| Repository files | **18** | `git/trees/HEAD` |
+| Default concurrency levels | **[8, 16, 32, 64, 128]** | `backend/engine.py` |
+| Default input/output lengths | **4096 / 1024** | `backend/engine.py` |
+| Tracked files | **18** | `git tree` |
+| Python modules | **7** | `git tree` |
+| Test-related paths | **2** | `git tree` |
+| CI workflows | **Yes** | `.github/workflows` |
+| Docker present | **Yes** | `repo root` |
+
+```mermaid
+%%{init: {'theme':'base'}}%%
+pie showData title Language composition (bytes)
+    "HTML" : 62
+    "Python" : 38
+    "Dockerfile" : 1
+```
+
+---
+
+## Key features
+
+- Concurrency-sweep orchestration with asyncio result streaming
+- TTFT/TPOT/ITL/E2EL-style LevelResult fields
+- VLLM_REAL toggle for simulation vs real subprocess benches
+- WebSocket subscription API for live UI updates
+- Prometheus/Grafana config and dashboard JSON
+- pytest + asyncio test dependencies
+
+---
 
 ## Tech stack
 
-- **Primary language:** HTML
-- **Languages (GitHub):** HTML (52232 bytes), Python (31968 bytes), Dockerfile (539 bytes)
-- **Focus area:** infra
-- **Tooling keywords:** Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM
+| Layer | Technology |
+|---|---|
+| Language | Python |
+| Framework | FastAPI |
+| Tool | Prometheus |
+| Tool | Grafana |
+| Tool | Docker |
+| API | vLLM bench serve |
 
-## Architecture (logical)
+---
 
-\\	ext
-Inputs → Processing / models / agents → Evaluation & metrics → CI checks → Artifacts
-\
-## Engineering practices
-
-1. Reproducible layout with clear module boundaries  
-2. Automated validation via CI and/or tests when present  
-3. Documentation that states measurable outcomes, not slogans  
-4. Skill surface aligned to common JD keywords: Python, machine learning, NLP/LLM, Kubernetes, Docker, observability, data pipelines  
-
-## Quick start
-
-\\ash
-git clone https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard.git
-cd LLM-Inference-Benchmarking-Dashboard
-# Install project requirements (see requirements.txt / pyproject.toml / environment files if present)
-# Run tests or main entrypoints documented in this repo
-\
 ## Skills demonstrated
 
-Python · machine-learning · CI/CD · API design · testing · automation · Docker · Kubernetes · FastAPI · Prometheus · data-science · LLM · MLOps · software-engineering · benchmarking · observability
+HTML · FastAPI · WebSockets · Prometheus · Grafana · Docker Compose · pytest · CI/CD · testing · automation
 
-## License / notice
+Keyword surface: **Python · HTML · machine-learning · CI/CD · testing · API · Docker · automation · data-science · software-engineering · system-design · observability · LLM · cloud**
 
-See repository license file if present. Metrics above are derived from repository structure and previously published validation notes where available.
+---
 
+## Project structure
 
-### Extended notes
+```text
+LLM-Inference-Benchmarking-Dashboard/
+├── backend/  # engine.py metrics.py server.py
+├── configs/ dashboards/
+├── Dockerfile docker-compose.yml requirements.txt
+└── .github/workflows/ci.yml
+```
 
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
+---
 
+## Installation & usage
 
-### Extended notes
+```bash
+git clone https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard.git
+cd LLM-Inference-Benchmarking-Dashboard
+pip install -r requirements.txt
+docker compose up --build
+uvicorn backend.server:app --reload
+VLLM_REAL=1 uvicorn backend.server:app  # real vllm bench serve
+```
 
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
+---
 
+## How it works
 
-### Extended notes
+backend/engine.py owns BenchmarkConfig/LevelResult and runs concurrency sweeps. With VLLM_REAL=0 it simulates; with VLLM_REAL=1 it shells out to vllm bench serve and parses stdout. server.py exposes HTTP + WebSocket endpoints so dashboards update live; compose wires Prometheus/Grafana.
 
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
+Root README is template spam; engine docstring is the accurate operator guide. No checked-in numeric latency leaderboard beyond config defaults.
 
+---
 
-### Extended notes
+## Future improvements
 
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
+- Check in example real-GPU result JSON for portfolio metrics
+- First-class DCGM panel wiring beyond spam keywords
+- Rewrite README with sequence diagram and VLLM_REAL quickstart
 
+---
 
-### Extended notes
+## License
 
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
+See repository.
 
+---
 
-### Extended notes
-
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
-
-
-### Extended notes
-
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
-
-
-### Extended notes
-
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
-
-
-### Extended notes
-
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
-
-
-### Extended notes
-
-This section expands documentation for completeness: reproducibility, keyword coverage for Python, machine-learning, CI/CD, API, Docker, Kubernetes, FastAPI, Prometheus, testing, automation, MLOps, LLM, data-science, software-engineering, benchmarking, and observability practices used across the portfolio.
+<p align="center">
+  <b>LLM Inference Benchmarking Dashboard</b><br/>
+  <a href="https://github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard">github.com/ArchanaChetan07/LLM-Inference-Benchmarking-Dashboard</a>
+</p>
